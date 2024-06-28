@@ -80,6 +80,8 @@ final class EventInterfaceGenerator extends InterfaceGenerator<IDispInterfaceDec
             super.annotate(o);
             o.printf("@DISPID(%1d)",method.getDispId());
             o.println();
+            o.printf("@DISPNAME(\"%s\")", method.getName());
+            o.println();
         }
 
         @Override

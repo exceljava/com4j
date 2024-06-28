@@ -10,3 +10,7 @@
 *.tli
 vc90.idb
 vc90.pdb
+**/.project
+**/.classpath
+**/.settings/
+**/target/

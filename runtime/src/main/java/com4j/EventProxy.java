@@ -122,7 +122,9 @@ final class EventProxy<T> implements EventCookie {
 
             for (Method m : eventInterface.getDeclaredMethods()) {
                 EventMethod em = new EventMethod(m);
-                methodsByName.put(m.getName(),em);
+
+                String name = em.dispname != null ? em.dispname : m.getName();
+                methodsByName.put(name, em);
                 methodsByID.put(em.dispid,em);
             }
         }
@@ -142,14 +144,19 @@ final class EventProxy<T> implements EventCookie {
 
     private static class EventMethod {
         private final int dispid;
+        private final String dispname;
         private final Method method;
         private final Class<?>[] params;
 
         public EventMethod(Method m) {
             DISPID a = m.getAnnotation(DISPID.class);
+            DISPNAME b = m.getAnnotation(DISPNAME.class);
             if(a==null)
                 throw new IllegalAnnotationException(m+" needs to have @DISPID");
+            if (b == null)
+                logger.log(Level.WARNING, m + " should have @DISPNAME annotation");
             dispid = a.value();
+            dispname = b != null ? b.value() : null;
             method = m;
             params = m.getParameterTypes();
         }
@@ -163,8 +170,14 @@ final class EventProxy<T> implements EventCookie {
                     throw new ComException("Argument length mismatch. Expected "+params.length+" but found "+args.length,DISP_E_BADPARAMCOUNT);
 
                 Object[] oargs = new Object[args.length];
-                for( int i=0; i<args.length; i++ )
-                    oargs[i] = args[i].convertTo(params[i]);
+                for( int i=0; i<args.length; i++ ) {
+                    try {
+                        oargs[i] = args[i].convertTo(params[i]);
+                    } catch (Exception e) {
+                        logger.log(Level.WARNING, "Unable to convert param["+ i + "] " +params[i] + " of method "+method,e);
+                        oargs[i] = null;
+                    }
+                }
                 return method.invoke(o,oargs);
             } catch (InvocationTargetException e) {
                 logger.log(Level.WARNING, method+" on "+o+" reported an exception",e.getTargetException());
