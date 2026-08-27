@@ -1,0 +1,21 @@
+jdk:
+  - openjdk17
+
+# Skip building from source (this project needs a Windows/MSVC toolchain
+# JitPack's Linux build servers don't have) and instead install the
+# prebuilt artifacts already uploaded to the matching GitHub release by
+# .github/workflows/release.yml.
+install:
+  - OWNER=${GROUP#com.github.}
+  - REPO=${ARTIFACT}
+  - MODULE_GROUP=${GROUP}.${REPO}
+  - BASE_URL=https://github.com/${OWNER}/${REPO}/releases/download/${VERSION}
+
+  - curl -L -f -o com4j.jar ${BASE_URL}/com4j-${VERSION}.jar
+  - mvn install:install-file -Dfile=com4j.jar -DgroupId=${MODULE_GROUP} -DartifactId=com4j -Dversion=${VERSION} -Dpackaging=jar -DgeneratePom=true
+
+  - curl -L -f -o tlbimp.jar ${BASE_URL}/tlbimp-${VERSION}.jar
+  - mvn install:install-file -Dfile=tlbimp.jar -DgroupId=${MODULE_GROUP} -DartifactId=tlbimp -Dversion=${VERSION} -Dpackaging=jar -DgeneratePom=true
+
+  - curl -L -f -o maven-com4j-plugin.jar ${BASE_URL}/maven-com4j-plugin-${VERSION}.jar
+  - mvn install:install-file -Dfile=maven-com4j-plugin.jar -DgroupId=${MODULE_GROUP} -DartifactId=maven-com4j-plugin -Dversion=${VERSION} -Dpackaging=jar -DgeneratePom=true
